@@ -1,0 +1,51 @@
+version: '3.5'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_NAME=${DATABASE_NAME}
+    container_name: postgres
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    ports:
+      - '5433:${DATABASE_PORT}'
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nest-docker-postgres
+    env_file:
+      - ./src/common/envs/development.env
+    environment:
+      - PORT=${PORT}
+      - BASE_URL=${BASE_URL}
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - '${PORT}:${PORT}'
+    depends_on:
+      - db
+    volumes:
+      - ./src:/app/src
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    container_name: nest-pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - '5050:80'
+    depends_on:
+      - db
